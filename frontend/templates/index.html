@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChainGuard AI — Smart Contract Security Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────── -->
+<header class="header">
+    <div class="logo">
+        <div class="logo-icon">&#x1F6E1;</div>
+        <div>
+            <h1>ChainGuard AI</h1>
+            <span>AI-Powered Smart Contract Security</span>
+        </div>
+    </div>
+    <nav class="nav-links">
+        <a href="/" class="active">Dashboard</a>
+        <a href="/docs">API Docs</a>
+        <a href="/redoc">ReDoc</a>
+    </nav>
+</header>
+
+<!-- ── Main Container ─────────────────────────────────────────── -->
+<div class="container">
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-value" id="stat-vulns">0</div>
+            <div class="stat-label">Vulnerabilities</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-score">0</div>
+            <div class="stat-label">Risk Score</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-grade">—</div>
+            <div class="stat-label">Grade</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-time">—</div>
+            <div class="stat-label">Analysis Time</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-functions">0</div>
+            <div class="stat-label">Functions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-lines">0</div>
+            <div class="stat-label">Lines of Code</div>
+        </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="card" style="margin-bottom:1.5rem;">
+        <div class="card-title">
+            <span class="icon">&#x1F50D;</span> Analyze Smart Contract
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="tab-upload">Upload</button>
+            <button class="tab-btn" data-tab="tab-editor">Code Editor</button>
+            <button class="tab-btn" data-tab="tab-samples">Sample Contracts</button>
+        </div>
+
+        <!-- Upload Tab -->
+        <div class="tab-panel active" id="tab-upload">
+            <div class="upload-zone" id="upload-zone">
+                <div class="icon">&#x1F4C4;</div>
+                <p>Drag &amp; drop a <strong>.sol</strong> file here</p>
+                <p>or</p>
+                <button class="btn-upload">Browse Files</button>
+                <input type="file" id="file-input" accept=".sol" hidden>
+            </div>
+        </div>
+
+        <!-- Editor Tab -->
+        <div class="tab-panel" id="tab-editor">
+            <textarea class="code-editor" id="code-editor"
+                      placeholder="// Paste your Solidity smart contract here...&#10;// pragma solidity ^0.8.0;&#10;// contract MyContract { ... }"></textarea>
+        </div>
+
+        <!-- Samples Tab -->
+        <div class="tab-panel" id="tab-samples">
+            <div class="grid-2">
+                <div class="card" style="cursor:pointer;" id="load-vulnerable">
+                    <div class="card-title">
+                        <span class="icon">&#x26A0;</span> VulnerableVault
+                    </div>
+                    <p style="font-size:0.85rem;color:var(--text-secondary);">
+                        Intentionally insecure contract with reentrancy, tx.origin auth,
+                        unprotected selfdestruct, and more. Great for testing the scanner.
+                    </p>
+                    <span class="severity-tag severity-critical" style="margin-top:0.75rem;display:inline-block;">6+ vulnerabilities</span>
+                </div>
+                <div class="card" style="cursor:pointer;" id="load-secure">
+                    <div class="card-title">
+                        <span class="icon">&#x2705;</span> SecureVault
+                    </div>
+                    <p style="font-size:0.85rem;color:var(--text-secondary);">
+                        Well-secured contract using ReentrancyGuard, proper access control,
+                        and Checks-Effects-Interactions pattern.
+                    </p>
+                    <span class="severity-tag severity-low" style="margin-top:0.75rem;display:inline-block;">Minimal issues</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-analyze" id="btn-analyze">
+            <div class="spinner"></div>
+            <span class="btn-text">&#x1F916; Analyze Contract</span>
+        </button>
+    </div>
+
+    <!-- ── Results Section ────────────────────────────────────── -->
+    <div class="results" id="results">
+
+        <!-- Risk Score Card -->
+        <div class="grid-2" style="margin-bottom:1.5rem;">
+            <div class="card">
+                <div class="card-title"><span class="icon">&#x1F4CA;</span> Risk Assessment</div>
+                <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1rem;">
+                    <div class="risk-badge" id="risk-badge">—</div>
+                    <div style="flex:1;">
+                        <div class="score-label"><span>Security Risk</span><span class="score-val" id="score-security">0</span></div>
+                        <div class="score-bar"><div class="score-bar-fill" id="bar-security"></div></div>
+                        <div class="score-label"><span></span><span class="score-val"></span></div>
+
+                        <div class="score-label"><span>Code Quality</span><span class="score-val" id="score-quality">0</span></div>
+                        <div class="score-bar"><div class="score-bar-fill" id="bar-quality"></div></div>
+                        <div class="score-label"><span></span><span class="score-val"></span></div>
+
+                        <div class="score-label"><span>Complexity</span><span class="score-val" id="score-complexity">0</span></div>
+                        <div class="score-bar"><div class="score-bar-fill" id="bar-complexity"></div></div>
+                        <div class="score-label"><span></span><span class="score-val"></span></div>
+                    </div>
+                </div>
+                <div id="tx-hash-section" style="display:none;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--border);">
+                    <span style="font-size:0.8rem;color:var(--text-muted);">Blockchain TX:</span>
+                    <code id="tx-hash" style="font-size:0.75rem;color:var(--accent);word-break:break-all;"></code>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">&#x1F916;</span> AI Security Summary</div>
+                <div class="ai-summary" id="ai-summary"></div>
+            </div>
+        </div>
+
+        <!-- Vulnerabilities -->
+        <div class="card" style="margin-bottom:1.5rem;">
+            <div class="card-title"><span class="icon">&#x1F41B;</span> Detected Vulnerabilities</div>
+            <ul class="vuln-list" id="vuln-list"></ul>
+        </div>
+
+        <!-- Blockchain Explorer -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">&#x26D3;</span> Blockchain Audit Trail
+                <span style="margin-left:auto;font-size:0.8rem;color:var(--text-muted);">
+                    Blocks: <span id="chain-length">1</span> |
+                    Status: <span id="chain-valid" style="color:var(--success);">Valid</span>
+                </span>
+            </div>
+            <div id="chain-blocks"></div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────────── -->
+<footer class="footer">
+    ChainGuard AI v1.0.0 &mdash; AI-Powered Smart Contract Security Analyzer with Blockchain Audit Trail<br>
+    Built with FastAPI &bull; Python &bull; Proof-of-Work Blockchain
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
