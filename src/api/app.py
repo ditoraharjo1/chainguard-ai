@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+import pathlib
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -51,8 +54,6 @@ def create_app() -> FastAPI:
     app.include_router(chain_router)
 
     # Static files & templates
-    import pathlib
-
     base = pathlib.Path(__file__).resolve().parent.parent.parent
     static_dir = base / "frontend" / "static"
     templates_dir = base / "frontend" / "templates"
@@ -63,12 +64,9 @@ def create_app() -> FastAPI:
     if templates_dir.exists():
         templates = Jinja2Templates(directory=str(templates_dir))
 
-        from fastapi import Request
-        from fastapi.responses import HTMLResponse
-
         @app.get("/", response_class=HTMLResponse)
         async def index(request: Request):
-            return templates.TemplateResponse("index.html", {"request": request})
+            return templates.TemplateResponse(request, "index.html")
 
     return app
 
